@@ -8,9 +8,34 @@ CIACRA_SPMODE 		= 1<<6
 INTREQ_PORTS		= 1<<3
 INTREQR_PORTS_BIT	= 3
 
+_AbsExecBase   = 4
+_LVOSupervisor = -30
+AttnFlags      = 296
+
 	section	code
+	public  _get_vbr
 	public	_level2_int
 	public	_keyboard_state
+	
+_get_vbr:
+	;; return current value of VBR in d0
+        movem.l a5/a6,-(SP)
+        moveq.l  #0,d0
+        move.l  _AbsExecBase,a6
+        move.w  AttnFlags(a6),d1
+        btst    #0,d1
+        beq.s   _get_vbr_Exit
+
+        lea     VBR_to_d0(PC),a5
+        jsr     _LVOSupervisor(a6)
+
+_get_vbr_Exit:
+	movem.l (SP)+,a5/a6
+        rts
+
+VBR_to_d0:
+        movec.l VBR,d0
+        rte
 
 _level2_int:
 	movem.l	d0-d1/a0-a2,-(sp)
