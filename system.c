@@ -21,9 +21,9 @@
 
 // Defined in system.asm
 extern void level2_int();
+extern ULONG get_vbr();
 
 static void allow_task_switch(BOOL allow);
-static ULONG get_vbr();
 static void set_intreq(UWORD intreq);
 
 struct GfxBase* GfxBase;
@@ -386,18 +386,6 @@ static void allow_task_switch(BOOL allow) {
     Forbid();
     g.task_switch_disabled = TRUE;
   }
-}
-
-static ULONG get_vbr() {
-  // VBR is 0 on 68000, supervisor register on 68010+.
-  ULONG vbr = 0;
-
-  if (SysBase->AttnFlags & (1U << AFB_68010)) {
-    UWORD get_vbr_reg[] = {0x4E7A, 0x0801, 0x4E73}; // movec vbr,d0; rte
-    vbr = Supervisor((ULONG (*const)())get_vbr_reg);
-  }
-
-  return vbr;
 }
 
 static void set_intreq(UWORD intreq) {
